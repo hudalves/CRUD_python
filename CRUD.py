@@ -1,14 +1,54 @@
 import mysql.connector
 from tkinter import *
 from tkinter import ttk
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+db_user = os.getenv("DB_USER")
+db_pass = os.getenv("DB_PASS")
+db_host = os.getenv("DB_HOST")
+db_name = os.getenv("DB_NAME")
 
 root = Tk()
 class funcs():
+    def criar_livro(self):
+        conexao = mysql.connector.connect(
+            host=db_host,
+            user=db_user,
+            password=db_pass,
+            database=db_name
+        )
+        cursor = conexao.cursor()
+        Titulos="hora de aventura"
+        Genero="romance"
+        Autor="hudson"
+        Dt_publi="2013-4-21"
+        comando = f'INSERT INTO livros (Titulos, Genero, Autor, Dt_publi) VALUES("{Titulos}","{Genero}", "{Autor}", "{Dt_publi}")'
+        cursor.execute(comando)
+        conexao.commit()
+        cursor.close()
+        conexao.close()
+    def buscar_livros(self):
+        conexao = mysql.connector.connect(
+            host=db_host,
+            user=db_user,
+            password=db_pass,
+            database=db_name
+        )
+        cursor = conexao.cursor()
+        cursor.execute("SELECT * FROM livros")
+        resultados = cursor.fetchall()
+
+        cursor.close()
+        conexao.close()
+        return resultados
     def limpar_tela(self):
         self.codigo_entry.delete(0, END)
         self.nome_entry.delete(0, END)
-        self.telefone_entry.delete(0, END)
-        self.cidade_entry.delete(0, END)
+        self.genero_entry.delete(0, END)
+        self.autor_entry.delete(0, END)
+        self.publi_entry.delete(0,END)
 class aplicacao(funcs):
 
     def __init__(self):
@@ -21,7 +61,7 @@ class aplicacao(funcs):
 
     def tela(self):
 
-        self.root.title('Cadastro de cliente')
+        self.root.title('Biblioteca digital')
         self.root.configure(background='#1e3743')
         self.root.geometry('700x500')
         self.root.resizable(True,True)
@@ -45,7 +85,7 @@ class aplicacao(funcs):
         self.bt_buscar = Button(self.frame_1, text="Buscar", bd=3, bg='#107db2',fg='white')
         self.bt_buscar.place(relx=0.3, rely=0.1, relwidth=0.09, relheight=0.13)
         #novo#
-        self.bt_novo = Button(self.frame_1, text="Novo", bd=3, bg='#107db2',fg='white')
+        self.bt_novo = Button(self.frame_1, text="Novo", bd=3, bg='#107db2',fg='white', command=self.criar_livro)
         self.bt_novo.place(relx=0.6, rely=0.1, relwidth=0.09, relheight=0.13)
         #alterar#
         self.bt_alterar = Button(self.frame_1, text="Alterar", bd=3, bg='#107db2',fg='white')
@@ -55,45 +95,54 @@ class aplicacao(funcs):
         self.bt_apagar.place(relx=0.8, rely=0.1, relwidth=0.09, relheight=0.13)
 
         # Label código
-        self.lb_codigo = Label(self.frame_1, text='Código', bg= '#dfe3ee')
+        self.lb_codigo = Label(self.frame_1, text='ID', bg= '#dfe3ee')
         self.lb_codigo.place(relx=0.05, rely=0.05)
 
         self.codigo_entry= Entry(self.frame_1)
         self.codigo_entry.place(relx=0.05,rely=0.15, relwidth=0.08)
 
         #Label nome
-        self.lb_nome = Label(self.frame_1, text='Nome', bg= '#dfe3ee')
+        self.lb_nome = Label(self.frame_1, text='Título', bg= '#dfe3ee')
         self.lb_nome.place(relx=0.05, rely=0.35)
 
         self.nome_entry= Entry(self.frame_1)
-        self.nome_entry.place(relx=0.05,rely=0.45, relwidth=0.5)
+        self.nome_entry.place(relx=0.05,rely=0.45, relwidth=0.65)
 
-        #Label telefone
-        self.lb_telefone = Label(self.frame_1, text='Telefone', bg= '#dfe3ee')
-        self.lb_telefone.place(relx=0.05, rely=0.6)
+        #Label gênero
+        self.lb_genero = Label(self.frame_1, text='Gênero', bg= '#dfe3ee')
+        self.lb_genero.place(relx=0.05, rely=0.6)
 
-        self.telefone_entry= Entry(self.frame_1)
-        self.telefone_entry.place(relx=0.05,rely=0.7, relwidth=0.4)
+        self.genero_entry= Entry(self.frame_1)
+        self.genero_entry.place(relx=0.05,rely=0.7, relwidth=0.25)
 
-        #Label cidade
-        self.lb_cidade = Label(self.frame_1, text='Cidade', bg= '#dfe3ee')
-        self.lb_cidade.place(relx=0.5, rely=0.6)
+        #Label autor
+        self.lb_autor = Label(self.frame_1, text='Autor', bg= '#dfe3ee')
+        self.lb_autor.place(relx=0.35, rely=0.6)
 
-        self.cidade_entry= Entry(self.frame_1)
-        self.cidade_entry.place(relx=0.5,rely=0.7, relwidth=0.4)
+        self.autor_entry= Entry(self.frame_1)
+        self.autor_entry.place(relx=0.35,rely=0.7, relwidth=0.4)
+
+        #Label publicação
+        self.lb_publi = Label(self.frame_1, text='Data de publicação', bg= '#dfe3ee')
+        self.lb_publi.place(relx=0.78, rely=0.6)
+
+        self.publi_entry= Entry(self.frame_1)
+        self.publi_entry.place(relx=0.78,rely=0.7, relwidth=0.16)
     def lista_frame2(self):
-        self.listaCL= ttk.Treeview(self.frame_2, height=3, columns= ('colun1', 'colun2','colun3','colun4'))
+        self.listaCL= ttk.Treeview(self.frame_2, height=3, columns= ('colun1', 'colun2','colun3','colun4','colun5'))
         self.listaCL.heading('#0',text='')
-        self.listaCL.heading('#1',text='Código')
-        self.listaCL.heading('#2',text='Nome')
-        self.listaCL.heading('#3',text='Telefone')
-        self.listaCL.heading('#4',text='Cidade')
+        self.listaCL.heading('#1',text='ID')
+        self.listaCL.heading('#2',text='Título')
+        self.listaCL.heading('#3',text='Gênero')
+        self.listaCL.heading('#4',text='Autor')
+        self.listaCL.heading('#5',text='Dt.publi')
 
         self.listaCL.column('#0', width=1)
         self.listaCL.column('#1', width=50)
         self.listaCL.column('#2', width=200)
-        self.listaCL.column('#3', width=125)
-        self.listaCL.column('#4', width=125)
+        self.listaCL.column('#3', width=100)
+        self.listaCL.column('#4', width=100)
+        self.listaCL.column('#5', width=50)
 
         self.listaCL.place(relx=0.01, rely=0.1, relwidth=0.95, relheight=0.85)
 
