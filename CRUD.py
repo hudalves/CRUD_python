@@ -2,6 +2,7 @@ import mysql.connector
 from tkinter import *
 from tkinter import ttk
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -12,37 +13,60 @@ db_name = os.getenv("DB_NAME")
 
 root = Tk()
 class funcs():
-    def criar_livro(self):
-        conexao = mysql.connector.connect(
+    def conecta_bd(self):
+        self.conexao = mysql.connector.connect(
             host=db_host,
             user=db_user,
             password=db_pass,
             database=db_name
         )
-        cursor = conexao.cursor()
-        Titulos="hora de aventura"
-        Genero="romance"
-        Autor="hudson"
-        Dt_publi="2013-4-21"
-        comando = f'INSERT INTO livros (Titulos, Genero, Autor, Dt_publi) VALUES("{Titulos}","{Genero}", "{Autor}", "{Dt_publi}")'
-        cursor.execute(comando)
-        conexao.commit()
-        cursor.close()
-        conexao.close()
-    def buscar_livros(self):
-        conexao = mysql.connector.connect(
-            host=db_host,
-            user=db_user,
-            password=db_pass,
-            database=db_name
-        )
-        cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM livros")
-        resultados = cursor.fetchall()
+        self.cursor = self.conexao.cursor()
 
-        cursor.close()
-        conexao.close()
+    def desconecta_bd(self):
+        self.cursor.close()
+        self.conexao.close()
+    
+    def add_livro(self):
+        self.codigo = self.codigo_entry.get()
+        self.Titulos = self.nome_entry.get()
+        self.Genero = self.genero_entry.get()
+        self.Autor = self.autor_entry.get()
+        self.Dt_publi = self.publi_entry.get()
+        # Conversão da data
+        try:
+            data_mysql = datetime.strptime(self.Dt_publi, "%d-%m-%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            try:
+                data_mysql = datetime.strptime(self.Dt_publi, "%d/%m/%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                data_mysql = self.Dt_publi 
+        
+        self.conecta_bd()
+        self.cursor.execute(f'INSERT INTO livros (Titulos, Genero, Autor, Dt_publi) VALUES("{self.Titulos}","{self.Genero}", "{self.Autor}", "{data_mysql}")')
+        self.conexao.commit()
+        self.desconecta_bd()
+        self.select_lista()
+        self.limpar_tela()
+
+    def select_lista(self):
+        self.listaCL.delete(*self.listaCL.get_children())
+        self.conecta_bd()
+        self.cursor.execute('SELECT IDLivros, Titulos, Genero, Autor, Dt_publi FROM livros ORDER BY Titulos ASC;')
+        lista = self.cursor.fetchall()
+        for i in lista:
+            self.listaCL.insert("", END, values=i)
+        self.desconecta_bd
+
+    def buscar_livros(self):
+        self.conecta_bd()
+        self.cursor.execute("SELECT * FROM livros")
+        resultados = self.cursor.fetchall()
+
+        self.desconecta_bd()
         return resultados
+    def double_click(self):
+        self.limpar_tela()
+        
     def limpar_tela(self):
         self.codigo_entry.delete(0, END)
         self.nome_entry.delete(0, END)
@@ -57,6 +81,7 @@ class aplicacao(funcs):
         self.frame_tela()
         self.widgets_frame1()
         self.lista_frame2()
+        self.select_lista()
         root.mainloop()
 
     def tela(self):
@@ -85,7 +110,7 @@ class aplicacao(funcs):
         self.bt_buscar = Button(self.frame_1, text="Buscar", bd=3, bg='#107db2',fg='white')
         self.bt_buscar.place(relx=0.3, rely=0.1, relwidth=0.09, relheight=0.13)
         #novo#
-        self.bt_novo = Button(self.frame_1, text="Novo", bd=3, bg='#107db2',fg='white', command=self.criar_livro)
+        self.bt_novo = Button(self.frame_1, text="Novo", bd=3, bg='#107db2',fg='white', command=self.add_livro)
         self.bt_novo.place(relx=0.6, rely=0.1, relwidth=0.09, relheight=0.13)
         #alterar#
         self.bt_alterar = Button(self.frame_1, text="Alterar", bd=3, bg='#107db2',fg='white')
