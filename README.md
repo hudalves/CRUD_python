@@ -1,4 +1,4 @@
-# CRUD_python
+# Biblioteca_Digital_python
 CRUD Biblioteca Digital
 
 Um sistema de cadastro e gerenciamento de livros, desenvolvido em Python + Tkinter + MySQL.
