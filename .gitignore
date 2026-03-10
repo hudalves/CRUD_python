@@ -1,2 +1,23 @@
 # Variáveis de ambiente
+```ignore
+# Variáveis de ambiente
 .env
+
+# Virtual environment
+.venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Distribution / packaging
+dist/
+build/
+*.spec
+*.exe
+
+# PyInstaller
+*.manifest
+*.log
+
+```
